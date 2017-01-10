@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{15580899-A66B-4B1C-B6C4-4DD0BC171B42}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SmartTools</RootNamespace>
+    <AssemblyName>SmartTools</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="MathNet.Numerics">
+      <HintPath>..\packages\MathNet.Numerics.3.11.0\lib\net40\MathNet.Numerics.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="MiniGL">
+      <HintPath>..\..\MiniGL\MiniGL\bin\Debug\MiniGL.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BaseFrame.cs" />
+    <Compile Include="BaseFrameN.cs" />
+    <Compile Include="ColorConverter.cs" />
+    <Compile Include="Detection\Detector.cs" />
+    <Compile Include="Detection\GObjectDetectorTrainer.cs" />
+    <Compile Include="Detection\Trainer.cs" />
+    <Compile Include="EvolveMe\BasicFDictionary.cs" />
+    <Compile Include="EvolveMe\LinearGene.cs" />
+    <Compile Include="EvolveMe\GeneProvider.cs" />
+    <Compile Include="EvolveMe\BasicWorld.cs" />
+    <Compile Include="EvolveMe\FunctionDictionary.cs" />
+    <Compile Include="EvolveMe\TreeGene.cs" />
+    <Compile Include="EvolveMe\World.cs" />
+    <Compile Include="Features\BoxDoHSpaceConstructor.cs" />
+    <Compile Include="Features\Matching\ExhNNSearch.cs" />
+    <Compile Include="Features\Matching\ExhSURFMatch.cs" />
+    <Compile Include="Features\DescriptorSURF.cs" />
+    <Compile Include="Features\ExtractorSURF.cs" />
+    <Compile Include="ImageFilters.cs" />
+    <Compile Include="Frame.cs" />
+    <Compile Include="Detection\GObjectDetector.cs" />
+    <Compile Include="HaarFeatures\HaarFeature.cs" />
+    <Compile Include="HaarFeatures\HaarFeatureProvider.cs" />
+    <Compile Include="Detection\HFObjectDetectorTrainer.cs" />
+    <Compile Include="Detection\HFObjectDetector.cs" />
+    <Compile Include="IImageLike.cs" />
+    <Compile Include="IntegralImage.cs" />
+    <Compile Include="PixelCollection.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="EvolveMe\ClassificationWorld.cs" />
+    <Compile Include="HaarFeatures\RawPixelInfoProvider.cs" />
+    <Compile Include="Frame3.cs" />
+    <Compile Include="Features\IFeatureDescripting.cs" />
+    <Compile Include="Features\Matching\IFeatureMatching.cs" />
+    <Compile Include="Features\IFeatureExtracting.cs" />
+    <Compile Include="Features\ScaleSpace.cs" />
+    <Compile Include="Features\IScaleSpaceConstructing.cs" />
+    <Compile Include="Segmentation\RWSegmentation.cs" />
+    <Compile Include="Segmentation\Segmentation.cs" />
+    <Compile Include="SubFrame.cs" />
+    <Compile Include="SuperPixel.cs" />
+    <Compile Include="Tracking\TemplateTracker.cs" />
+    <Compile Include="HaarFeatures\WeakClassifier.cs" />
+    <Compile Include="ImageTransforms.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
