@@ -715,6 +715,194 @@ namespace SmartTools
         }
         #endregion
 
+#region Generic
+        public static void Convolve(IImageLike<int> src, IImageLike<int> dst, float[] lineKernel, float[] rowKernel)
+        {
+            int w2 = lineKernel.Length / 2;
+            int h2 = rowKernel.Length / 2;
+            float acc = 0.0f;
+            var oldBorder = src.BorderOptions;
+            if (src.BorderOptions == Border.Empty)
+                src.BorderOptions = Border.Zeros;
+            var tmp = new FrameF32(src.Width, src.Height, src.BorderOptions);
+
+            for (int j = 0; j < src.Height; j++)
+            {
+                for (int i = 0; i < src.Width; i++)
+                {
+                    for (int i2 = i - w2; i2 < i + w2; i++)
+                        acc += lineKernel[i2 - i + w2] * src[i2, j];
+                    tmp[i, j] = acc;
+                    acc = 0.0f;
+                }
+            }
+
+            src.BorderOptions = oldBorder;
+
+            for (int i = 0; i < src.Width; i++)
+            {
+                for (int j = 0; j < src.Height; j++)
+                {
+                    for (int j2 = j - h2; j2 < j + h2; j++)
+                        acc += rowKernel[j2 - j + h2] * tmp[i, j2];
+                    dst[i, j] = (int)acc;
+                    acc = 0.0f;
+                }
+            }
+        }
+        public static void Convolve(IImageLike<byte> src, IImageLike<byte> dst, float[] lineKernel, float[] rowKernel)
+        {
+            int w2 = lineKernel.Length / 2;
+            int h2 = rowKernel.Length / 2;
+            float acc = 0.0f;
+            var oldBorder = src.BorderOptions;
+            if (src.BorderOptions == Border.Empty)
+                src.BorderOptions = Border.Zeros;
+            var tmp = new FrameF32(src.Width, src.Height, src.BorderOptions);
+
+            for (int j = 0; j < src.Height; j++)
+            {
+                for (int i = 0; i < src.Width; i++)
+                {
+                    for (int i2 = i - w2; i2 < i + w2; i++)
+                        acc += lineKernel[i2 - i + w2] * src[i2, j];
+                    tmp[i, j] = acc;
+                    acc = 0.0f;
+                }
+            }
+
+            src.BorderOptions = oldBorder;
+
+            for (int i = 0; i < src.Width; i++)
+            {
+                for (int j = 0; j < src.Height; j++)
+                {
+                    for (int j2 = j - h2; j2 < j + h2; j++)
+                        acc += rowKernel[j2 - j + h2] * tmp[i, j2];
+                    dst[i, j] = (byte)acc;
+                    acc = 0.0f;
+                }
+            }
+        }
+        public static void Convolve(IImageLike<float> src, IImageLike<float> dst, float[] lineKernel, float[] rowKernel)
+        {
+            int w2 = lineKernel.Length / 2;
+            int h2 = rowKernel.Length / 2;
+            float acc = 0.0f;
+            var oldBorder = src.BorderOptions;
+            if (src.BorderOptions == Border.Empty)
+                src.BorderOptions = Border.Zeros;
+            var tmp = new FrameF32(src.Width, src.Height, src.BorderOptions);
+
+            for (int j = 0; j < src.Height; j++)
+            {
+                for (int i = 0; i < src.Width; i++)
+                {
+                    for (int i2 = i - w2; i2 < i + w2; i++)
+                        acc += lineKernel[i2 - i + w2] * src[i2, j];
+                    tmp[i, j] = acc;
+                    acc = 0.0f;
+                }
+            }
+
+            src.BorderOptions = oldBorder;
+
+            for (int i = 0; i < src.Width; i++)
+            {
+                for (int j = 0; j < src.Height; j++)
+                {
+                    for (int j2 = j - h2; j2 < j + h2; j++)
+                        acc += rowKernel[j2 - j + h2] * tmp[i, j2];
+                    dst[i, j] = acc;
+                    acc = 0.0f;
+                }
+            }
+        }
+        public static void Convolve(IImageLike<byte> src, IImageLike<byte> dst, float[][] kernel)
+        {
+            int w2 = kernel.Length / 2;
+            int h2 = kernel[0].Length / 2;
+
+            float acc = 0.0f;
+            var oldBorder = src.BorderOptions;
+            if (src.BorderOptions == Border.Empty)
+                src.BorderOptions = Border.Zeros;
+
+            for (int i = 0; i < src.Width; i++)
+            {
+                for (int j = 0; j < src.Height; j++)
+                {
+                    for (int i2 = i - w2; i < i + w2; i++)
+                    {
+                        for (int j2 = j - h2; j < j + h2; j++)
+                            acc += src[i2, j2] * kernel[i2 - i + w2][j2 - j + h2];
+                    }
+                    dst[i, j] = (byte)acc;
+                    acc = 0.0f;
+                }
+            }
+            src.BorderOptions = oldBorder;
+        }
+        public static void Convolve(IImageLike<int> src, IImageLike<int> dst, float[][] kernel)
+        {
+            int w2 = kernel.Length / 2;
+            int h2 = kernel[0].Length / 2;
+
+            float acc = 0.0f;
+            var oldBorder = src.BorderOptions;
+            if (src.BorderOptions == Border.Empty)
+                src.BorderOptions = Border.Zeros;
+
+            for (int i = 0; i < src.Width; i++)
+            {
+                for (int j = 0; j < src.Height; j++)
+                {
+                    for (int i2 = i - w2; i < i + w2; i++)
+                    {
+                        for (int j2 = j - h2; j < j + h2; j++)
+                            acc += src[i2, j2] * kernel[i2 - i + w2][j2 - j + h2];
+                    }
+                    dst[i, j] = (int)acc;
+                    acc = 0.0f;
+                }
+            }
+            src.BorderOptions = oldBorder;
+        }
+        public static void Convolve(IImageLike<float> src, IImageLike<float> dst, float[][] kernel)
+        {
+            int w2 = kernel.Length / 2;
+            int h2 = kernel[0].Length / 2;
+
+            float acc = 0.0f;
+            var oldBorder = src.BorderOptions;
+            if (src.BorderOptions == Border.Empty)
+                src.BorderOptions = Border.Zeros;
+
+            for (int i = 0; i < src.Width; i++)
+            {
+                for (int j = 0; j < src.Height; j++)
+                {
+                    for (int i2 = i - w2; i < i + w2; i++)
+                    {
+                        for (int j2 = j - h2; j < j + h2; j++)
+                            acc += src[i2, j2] * kernel[i2 - i + w2][j2 - j + h2];
+                    }
+                    dst[i, j] = acc;
+                    acc = 0.0f;
+                }
+            }
+            src.BorderOptions = oldBorder;
+        }
+#endregion
+
+#region Edge Detection
+        public static void Sobel(IImageLike<int> src, IImageLike<int> dst)
+        {
+            
+        }
+
+#endregion
+
         #region Histogram Equalization
 
         public static void EqualizeHist(IImageLike<double> im, double MAX_VALUE = 255)
