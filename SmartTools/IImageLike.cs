@@ -1,6 +1,6 @@
 ﻿using System;
 
-using MiniGL;
+using GraphicsUtility;
 
 namespace SmartTools
 {

@@ -5,7 +5,7 @@ using System.Xml;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.Distributions;
 
-using MiniGL;
+using GraphicsUtility;
 
 namespace SmartTools.Tracking
 {

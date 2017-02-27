@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using MiniGL;
+
+using GraphicsUtility;
 using SmartTools.EvolveMe;
 
 namespace SmartTools.Detection

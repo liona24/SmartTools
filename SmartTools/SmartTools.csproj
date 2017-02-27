@@ -43,9 +43,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="MiniGL">
-      <HintPath>..\..\MiniGL\MiniGL\bin\Debug\MiniGL.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseFrame.cs" />
@@ -95,6 +92,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\common\GraphicsUtility\GraphicsUtility\GraphicsUtility.csproj">
+      <Project>{6b798129-cae1-4b68-be37-602fccdb9eb3}</Project>
+      <Name>GraphicsUtility</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

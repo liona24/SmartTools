@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using SmartTools.HaarFeatures;
-using MiniGL;
+using GraphicsUtility;
 
 namespace SmartTools.Detection
 {

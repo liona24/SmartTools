@@ -1,7 +1,7 @@
 ﻿using System;
 
 using SmartTools.EvolveMe;
-using MiniGL;
+using GraphicsUtility;
 
 namespace SmartTools.Detection
 {

@@ -5,8 +5,7 @@ using System.Threading.Tasks;
 
 using MathNet.Numerics.LinearAlgebra;
 
-using MiniGL;
-
+using GraphicsUtility;
 
 namespace SmartTools.Detection
 {

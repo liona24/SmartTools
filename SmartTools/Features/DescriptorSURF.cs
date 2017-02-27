@@ -1,4 +1,4 @@
-﻿using MiniGL;
+﻿using GraphicsUtility;
 
 namespace SmartTools.Features
 {

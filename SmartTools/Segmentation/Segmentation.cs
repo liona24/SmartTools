@@ -2,10 +2,12 @@
     Implementation of a Segmentation algorithm proposed by Chan and Vese
     in "Active Contours Without Edges" in IEEE Transactions on Image Pro-
     cessing, vol. 10, 2001
+
+    It does not work though.
 */
 
 using System;
-using MiniGL;
+using GraphicsUtility;
 
 namespace SmartTools
 {

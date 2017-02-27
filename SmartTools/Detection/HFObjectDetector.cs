@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Threading.Tasks;
 //TODO simplify after update of WeakClassifier class
 using SmartTools.HaarFeatures;
-using MiniGL;
+using GraphicsUtility;
 
 namespace SmartTools.Detection
 {

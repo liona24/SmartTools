@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-using MiniGL;
+using GraphicsUtility;
 
 namespace SmartTools
 {
@@ -114,15 +114,6 @@ namespace SmartTools
             for (int i = indices.Length; i < tmp.Length; i++)
                 tmp[i] = range[i - indices.Length];
             indices = tmp;
-        }
-
-        public static PixelCollection<T> FromPolygon(I2Dimensional[] poly, IImageLike<T> im)
-        {
-            var r = new Rasterizer(im.Width, im.Height, 0, 0);
-            var indices = new List<Vec2I>();
-            r.Rasterize(indices, poly);
-            return new PixelCollection<T>(indices.ToArray(), im);
-            
         }
     }
 }
