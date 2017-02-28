@@ -28,16 +28,6 @@ namespace SmartTools.Tracking
     /// </summary>
     public class TemplateTracker
     {
-        public delegate double LevelSetDelegate(double x, double y, double totWidth, double totHeight);
-
-        /// <summary>
-        /// Function used to sample the z coordinate at the given location
-        /// </summary>
-        /// <param name="x">Image position x</param>
-        /// <param name="y">Image position y</param>
-        /// <returns>Returns the z coordinate</returns>
-        public delegate double ZSampleDelegate(double x, double y);
-
         Matrix<double>[] paramCombinations;
         Vector<double> intensities;
         Matrix<double>[] linearPredictors;
@@ -50,7 +40,7 @@ namespace SmartTools.Tracking
         //decoding: [angleX, angleY, angleZ, scale, dX, dY]
         protected double[] param;
         protected TrackingParams[] paramConfig;
-        protected TMaker t;
+        protected Transform t;
 
         int numLayers;
         int numIter;
@@ -91,13 +81,13 @@ namespace SmartTools.Tracking
         /// </summary>
         /// <param name="poly">A convex polygon describing the bounds of the target</param>
         /// <param name="zFunc">A function describing the raw shape of the object, wheres the return value the 'virtual' depth into the screen, 0 at screen</param>
-        public void LockTarget<T>(IImageLike<T> frame, I2Dimensional[] poly, ZSampleDelegate zFunc, double sigmaNoise)
+        public void LockTarget<T>(IImageLike<T> frame, Vec2[] poly, Func<double, double, double> zFunc, double sigmaNoise)
             where T : IComparable, IEquatable<T>, IConvertible
         {
             samplePoints(frame, poly, zFunc);
 
             wSamples = new Vec4[samples.Length];
-            t = new TMaker();
+            t = new Transform(Transform.GetIdentity());
             linearPredictors = new Matrix<double>[numLayers];
 
             Normal noise = new Normal(0, sigmaNoise);
@@ -132,15 +122,15 @@ namespace SmartTools.Tracking
             transformPoints(samples, wSamples);
         }
 
-        public void LockTarget<T>(IImageLike<T> frame, I2Dimensional[] polygon)
+        public void LockTarget<T>(IImageLike<T> frame, Vec2[] polygon)
             where T : IComparable, IEquatable<T>, IConvertible
         {
             LockTarget(frame, polygon, ZToZeroSampleFunc, 3.0);
         }
-        public void LockTarget<T>(IImageLike<T> frame, Rect rect, ZSampleDelegate zFunc)
+        public void LockTarget<T>(IImageLike<T> frame, Rect rect, Func<double, double, double> zFunc)
             where T : IComparable, IEquatable<T>, IConvertible
         {
-            LockTarget(frame, new I2Dimensional[] { new Vec2(rect.L, rect.T),
+            LockTarget(frame, new Vec2[] { new Vec2(rect.L, rect.T),
                                             new Vec2(rect.R, rect.T),
                                             new Vec2(rect.R, rect.B),
                                             new Vec2(rect.L, rect.B)}, zFunc, 3.0);
@@ -148,20 +138,20 @@ namespace SmartTools.Tracking
         public void LockTarget<T>(IImageLike<T> frame, Rect rect)
             where T : IComparable, IEquatable<T>, IConvertible
         {
-            LockTarget(frame, new I2Dimensional[] { new Vec2(rect.L, rect.T),
+            LockTarget(frame, new Vec2[] { new Vec2(rect.L, rect.T),
                                             new Vec2(rect.R, rect.T),
                                             new Vec2(rect.R, rect.B),
                                             new Vec2(rect.L, rect.B)}, ZToZeroSampleFunc, 3.0);
         }
-        public void LockTarget<T>(IImageLike<T> frame, I2Dimensional[] polygon, double sigmaNoise)
+        public void LockTarget<T>(IImageLike<T> frame, Vec2[] polygon, double sigmaNoise)
             where T : IComparable, IEquatable<T>, IConvertible
         {
             LockTarget(frame, polygon, ZToZeroSampleFunc, sigmaNoise);
         }
-        public void LockTarget<T>(IImageLike<T> frame, Rect rect, ZSampleDelegate zFunc, double sigmaNoise)
+        public void LockTarget<T>(IImageLike<T> frame, Rect rect, Func<double, double, double> zFunc, double sigmaNoise)
             where T : IComparable, IEquatable<T>, IConvertible
         {
-            LockTarget(frame, new I2Dimensional[] { new Vec2(rect.L, rect.T),
+            LockTarget(frame, new Vec2[] { new Vec2(rect.L, rect.T),
                                             new Vec2(rect.R, rect.T),
                                             new Vec2(rect.R, rect.B),
                                             new Vec2(rect.L, rect.B)}, zFunc, sigmaNoise);
@@ -169,7 +159,7 @@ namespace SmartTools.Tracking
         public void LockTarget<T>(IImageLike<T> frame, Rect rect, double sigmaNoise)
             where T : IComparable, IEquatable<T>, IConvertible
         {
-            LockTarget(frame, new I2Dimensional[] { new Vec2(rect.L, rect.T),
+            LockTarget(frame, new Vec2[] { new Vec2(rect.L, rect.T),
                                             new Vec2(rect.R, rect.T),
                                             new Vec2(rect.R, rect.B),
                                             new Vec2(rect.L, rect.B)}, ZToZeroSampleFunc, sigmaNoise);
@@ -210,18 +200,75 @@ namespace SmartTools.Tracking
             return result;
         }
 
-        public TMaker GetCurrentTrafo()
+        public Transform GetCurrentTrafo()
         {
-            return (TMaker)t.Clone();
+            return (Transform)t.Clone();
         }
 
-        protected virtual void samplePoints<T>(IImageLike<T> frame, I2Dimensional[] poly, ZSampleDelegate zFunc)
+        protected virtual void samplePoints<T>(IImageLike<T> frame, Vec2[] poly, Func<double, double, double> zFunc)
             where T : IComparable, IEquatable<T>, IConvertible
         {
-            var bounds = getBounds(poly);
+            var bounds = (RectI)GUtility.GetBounds(poly);
+            var indicatorMap = new byte[bounds.Width * bounds.Height];
 
-            var raster = new Rasterizer(bounds.Width + 1, bounds.Height + 1, bounds.L, bounds.T);
-            var points = raster.Rasterize(poly);
+            Action<Vec2, Vec2> indicateScanLine = (from, to) =>
+            {
+                int x1 = (int)from.X;
+                int x2 = (int)to.X;
+                int y1 = (int)from.Y;
+                int y2 = (int)to.Y;
+
+                int dx = Math.Abs(x2 - x1);
+                if (dx == 0)
+                    return;
+                int dy = -Math.Abs(y2 - y1);
+
+                int sx = x2 > x1 ? 1 : -1;
+                int sy = y2 > y1 ? 1 : -1;
+                int e2;
+                int err = dx + dy;
+                do
+                {
+                    if (y1 == y2 && x1 == x2)
+                        break;
+
+                    e2 = err + err;
+                    if (e2 > dy)
+                    {
+                        err += dy;
+                        x1 += sx;
+
+                        indicatorMap[x1 * bounds.Height + y1] = 1;
+                    }
+                    if (e2 < dx)
+                    {
+                        err += dx;
+                        y1 += sy;
+                    }
+                } while (true);
+            };
+
+            for (int i = 0; i < poly.Length - 1; i++)
+                indicateScanLine(poly[i], poly[i + 1]);
+            indicateScanLine(poly[poly.Length - 1], poly[0]);
+
+            int k = 0;
+            var points = new List<Vec2I>();
+            for (int i = 0; i < bounds.Width; i++)
+            {
+                bool inside = false;
+                for (int j = 0; j < bounds.Height; j++)
+                {
+                    if (indicatorMap[k] != 0)
+                    {
+                        inside = !inside;
+                        points.Add(new Vec2I(i, j));
+                    }
+                    else if (inside)
+                        points.Add(new Vec2I(i, j));
+                    k++;
+                }
+            }
 
             var listSamples = new List<Vec4>(bounds.Area / sampleStep + poly.Length);
 
@@ -253,38 +300,6 @@ namespace SmartTools.Tracking
         {
             t.LoadIdentity();
             int k = 0;
-            if (paramConfig[layer].HasFlag(TrackingParams.RotZ))
-            {
-                double n = param[0] - deltaParam[k++];
-                t.RotateZ(n);
-                param[0] = n;
-            }
-            if (paramConfig[layer].HasFlag(TrackingParams.RotY))
-            {
-                double n = param[1] - deltaParam[k++];
-                t.RotateY(n);
-                param[1] = n;
-            }
-            if (paramConfig[layer].HasFlag(TrackingParams.RotX))
-            {
-                double n = param[2] - deltaParam[k++];
-                t.RotateX(n);
-                param[2] = n;
-            }
-            if (paramConfig[layer].HasFlag(TrackingParams.Scale))
-            {
-                double n = param[3] - deltaParam[k++];
-                t.Scale(n);
-                param[3] = n;
-            }
-            if (paramConfig[layer].HasFlag(TrackingParams.DeltaX))
-            {
-                double n = param[4] - deltaParam[k++];
-                t.Translate(n, 0, 0);
-                param[4] = n;
-            }
-            else
-                t.Translate(param[4], 0, 0);
             if (paramConfig[layer].HasFlag(TrackingParams.DeltaY))
             {
                 double n = param[5] - deltaParam[k++];
@@ -293,34 +308,67 @@ namespace SmartTools.Tracking
             }
             else
                 t.Translate(0, param[5], 0);
+            if (paramConfig[layer].HasFlag(TrackingParams.DeltaX))
+            {
+                double n = param[4] - deltaParam[k++];
+                t.Translate(n, 0, 0);
+                param[4] = n;
+            }
+            else
+                t.Translate(param[4], 0, 0);
+            if (paramConfig[layer].HasFlag(TrackingParams.Scale))
+            {
+                double n = param[3] - deltaParam[k++];
+                t.Scale(n);
+                param[3] = n;
+            }
+            if (paramConfig[layer].HasFlag(TrackingParams.RotX))
+            {
+                double n = param[2] - deltaParam[k++];
+                t.RotateX(n);
+                param[2] = n;
+            }
+            if (paramConfig[layer].HasFlag(TrackingParams.RotY))
+            {
+                double n = param[1] - deltaParam[k++];
+                t.RotateY(n);
+                param[1] = n;
+            }
+            if (paramConfig[layer].HasFlag(TrackingParams.RotZ))
+            {
+                double n = param[0] - deltaParam[k++];
+                t.RotateZ(n);
+                param[0] = n;
+            }
         }
 
         protected virtual void updateTMaker(Vector<double> deltaParam, int layer)
         {
             t.LoadIdentity();
+
             int k = 0;
-            if (paramConfig[layer].HasFlag(TrackingParams.RotZ))
-                t.RotateZ(param[0] - deltaParam[k++]);
-            if (paramConfig[layer].HasFlag(TrackingParams.RotY))
-                t.RotateY(param[1] - deltaParam[k++]);
-            if (paramConfig[layer].HasFlag(TrackingParams.RotX))
-                t.RotateX(param[2] - deltaParam[k++]);
-            if (paramConfig[layer].HasFlag(TrackingParams.Scale))
-                t.Scale(param[3] - deltaParam[k++]);
-            if (paramConfig[layer].HasFlag(TrackingParams.DeltaX))
-                t.Translate(param[4] - deltaParam[k++], 0, 0);
-            else
-                t.Translate(param[4], 0, 0);
             if (paramConfig[layer].HasFlag(TrackingParams.DeltaY))
                 t.Translate(0, param[5] - deltaParam[k++], 0);
             else
                 t.Translate(0, param[5], 0);
+            if (paramConfig[layer].HasFlag(TrackingParams.DeltaX))
+                t.Translate(param[4] - deltaParam[k++], 0, 0);
+            else
+                t.Translate(param[4], 0, 0);
+            if (paramConfig[layer].HasFlag(TrackingParams.Scale))
+                t.Scale(param[3] - deltaParam[k++]);
+            if (paramConfig[layer].HasFlag(TrackingParams.RotX))
+                t.RotateX(param[2] - deltaParam[k++]);
+            if (paramConfig[layer].HasFlag(TrackingParams.RotY))
+                t.RotateY(param[1] - deltaParam[k++]);
+            if (paramConfig[layer].HasFlag(TrackingParams.RotZ))
+                t.RotateZ(param[0] - deltaParam[k++]);
         }
 
         private void transformPoints(Vec4[] src, Vec4[] dst)
         {
             for (int i = 0; i < src.Length; i++)
-                dst[i] = t.Transform(src[i]);
+                dst[i] = t * src[i];
         }
 
         private static void normalizeVec(Vector<double> v)
@@ -333,26 +381,6 @@ namespace SmartTools.Tracking
             if (sum > double.Epsilon)
                 stdR = 1 / Math.Sqrt(sum / (l - 1));
             v.MapInplace(j => stdR * j);
-        }
-
-        private static RectI getBounds(I2Dimensional[] poly)
-        {
-            double l = double.MaxValue;
-            double r = double.MinValue;
-            double t = double.MaxValue;
-            double b = double.MinValue;
-            for (int i = 0; i < poly.Length; i++)
-            {
-                if (poly[i].X < l)
-                    l = poly[i].X;
-                else if (poly[i].X > r)
-                    r = poly[i].X;
-                if (poly[i].Y < t)
-                    t = poly[i].Y;
-                else if (poly[i].Y > b)
-                    b = poly[i].Y;
-            }
-            return new RectI((int)Math.Floor(l), (int)Math.Floor(t), (int)Math.Ceiling(r), (int)Math.Ceiling(b));
         }
 
         private static int countParams(TrackingParams p)
@@ -374,10 +402,12 @@ namespace SmartTools.Tracking
             return count;
         }
 
-        public static double ZToZeroSampleFunc(double x, double y)
+        private static Func<double, double, double> ZToZeroSampleFunc = (x, y) =>
         {
             return 0;
-        }
+        };
+
+        
     }
 
 
@@ -405,12 +435,12 @@ namespace SmartTools.Tracking
             values = new double[count][];
             int i = 0;
 
-            if (config.HasFlag(TrackingParams.RotZ))   values[i++] = rotZ;
-            if (config.HasFlag(TrackingParams.RotY))   values[i++] = rotY;
-            if (config.HasFlag(TrackingParams.RotX))   values[i++] = rotX;
-            if (config.HasFlag(TrackingParams.Scale))  values[i++] = scale;
-            if (config.HasFlag(TrackingParams.DeltaX)) values[i++] = dX;
             if (config.HasFlag(TrackingParams.DeltaY)) values[i++] = dY;
+            if (config.HasFlag(TrackingParams.DeltaX)) values[i++] = dX;
+            if (config.HasFlag(TrackingParams.Scale))  values[i++] = scale;
+            if (config.HasFlag(TrackingParams.RotX))   values[i++] = rotX;
+            if (config.HasFlag(TrackingParams.RotY))   values[i++] = rotY;
+            if (config.HasFlag(TrackingParams.RotZ))   values[i++] = rotZ;
         }
         public TrackingParamCombination(TrackingParams config, double[][] values)
         {
@@ -586,7 +616,7 @@ namespace SmartTools.Tracking
         {
             int count = countParams(config);
             if (ranges.Length != count)
-                throw new ArgumentException("Dimensions do not fit! Number of parameters specified is not equal to number of ranges given!");
+                throw new ArgumentException("ranges", "Dimensions do not fit! Number of parameters specified is not equal to number of ranges given!");
             int numComb = 1;
             for (int i = 0; i < ranges.Length; i++)
                 numComb *= (int)((ranges[i].Y - ranges[i].X) / ranges[i].Z);
