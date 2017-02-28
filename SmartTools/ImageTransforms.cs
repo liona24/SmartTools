@@ -4,8 +4,13 @@ using GraphicsUtility;
 
 namespace SmartTools
 {
+    public enum InterpolationType
+    {
+        NearestNeighbor
+    }
     public static partial class Imaging
     {
+
 
         #region SymmetryTransform
         /// <summary>
@@ -468,6 +473,31 @@ namespace SmartTools
 
         #endregion
 
+        #region Scale
+        public static void Scale<T>(IImageLike<T> src, IImageLike<T> dst, InterpolationType ipt)
+            where T : IConvertible, IComparable, IEquatable<T>
+        {
+            double sX = (double)src.Width / dst.Width;
+            double sY = (double)src.Height / dst.Height;
 
+            switch (ipt)
+            {
+                case InterpolationType.NearestNeighbor:
+                    for (int i = 0; i < dst.Width; i++)
+                    {
+                        int x = (int)Math.Round(i * sX);
+                        for (int j = 0; j < dst.Height; j++)
+                        {
+                            int y = (int)Math.Round(j * sY);
+                            dst[i, j] = src[x, y];
+                        }
+                    }
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        #endregion
     }
 }
