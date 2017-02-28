@@ -4,9 +4,9 @@ namespace SmartTools.Features
 {
     public class ExhNNSearch : IFeatureMatching
     {
-        public MiniGL.Vec2I[] Match(IFeatureDescripting[] set1, IFeatureDescripting[] set2, double thresh)
+        public GraphicsUtility.Vec2I[] Match(IFeatureDescripting[] set1, IFeatureDescripting[] set2, double thresh)
         {
-            var matches = new List<MiniGL.Vec2I>();
+            var matches = new List<GraphicsUtility.Vec2I>();
 
             double min;
             int m;
@@ -31,7 +31,7 @@ namespace SmartTools.Features
                 }
 
                 if (m != -1)
-                    matches.Add(new MiniGL.Vec2I(i, m));
+                    matches.Add(new GraphicsUtility.Vec2I(i, m));
             }
 
             return matches.ToArray();

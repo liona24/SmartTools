@@ -2,7 +2,7 @@
 {
     public class ExhSURFMatch : ExhNNSearch
     {
-        public MiniGL.Vec2I[] Match (DescriptorSURF[] set1, DescriptorSURF[] set2, double thresh)
+        public GraphicsUtility.Vec2I[] Match (DescriptorSURF[] set1, DescriptorSURF[] set2, double thresh)
         {
             return base.Match(set1, set2, thresh);
         }

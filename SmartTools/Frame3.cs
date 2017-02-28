@@ -2,8 +2,7 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 
-using MiniGL;
-
+using GraphicsUtility;
 
 namespace SmartTools
 {

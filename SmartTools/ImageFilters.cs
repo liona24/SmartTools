@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-
-using MiniGL;
+using GraphicsUtility;
 
 namespace SmartTools
 {
@@ -715,7 +714,7 @@ namespace SmartTools
         }
         #endregion
 
-#region Generic
+        #region Generic
         public static void Convolve(IImageLike<int> src, IImageLike<int> dst, float[] lineKernel, float[] rowKernel)
         {
             int w2 = lineKernel.Length / 2;
@@ -893,15 +892,15 @@ namespace SmartTools
             }
             src.BorderOptions = oldBorder;
         }
-#endregion
+        #endregion
 
-#region Edge Detection
+        #region Edge Detection
         public static void Sobel(IImageLike<int> src, IImageLike<int> dst)
         {
             
         }
 
-#endregion
+        #endregion
 
         #region Histogram Equalization
 
